@@ -72,6 +72,8 @@ deploy:
 
   makeDataDirWritable: false
 
+  usePrefixedLabels: false
+
   nameOverride: ""
 
   resourceLabels: []
@@ -96,8 +98,7 @@ deploy:
       - podAffinityTerm:
           labelSelector:
             matchLabels:
-              clusterName: {{ include "infinispan-helm-charts.name" . }}
-              app: infinispan-pod
+              {{- include "infinispan-helm-charts.selectorLabels" . | nindent 14 }}
           topologyKey: kubernetes.io/hostname
         weight: 100
 
