@@ -37,7 +37,7 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- range .Values.deploy.resourceLabels }}
-{{ .key }}: {{ .value }}
+{{ .key }}: {{ .value | quote }}
 {{- end }}
 {{- end }}
 
@@ -47,7 +47,7 @@ Pod custom Annotations
 
 {{- define "infinispan-helm-charts.podAnnotations" -}}
 {{- range .Values.deploy.podAnnotations }}
-{{ .key }}: {{ .value }}
+{{ .key }}: {{ .value | quote }}
 {{- end }}
 {{- end }}
 
@@ -58,7 +58,7 @@ Pod custom labels
 {{- define "infinispan-helm-charts.podLabels" -}}
 {{- range .Values.deploy.podLabels }}
 {{- if and (ne .key "clusterName") (ne .key "app") (ne .key "infinispan_clusterName") (ne .key "infinispan_app") }}
-{{ .key }}: {{ .value }}
+{{ .key }}: {{ .value | quote }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -69,7 +69,7 @@ Service custom labels
 
 {{- define "infinispan-helm-charts.svcLabels" -}}
 {{- range .Values.deploy.svcLabels }}
-{{ .key }}: {{ .value }}
+{{ .key }}: {{ .value | quote }}
 {{- end }}
 {{- end }}
 
@@ -104,6 +104,14 @@ Include for indentation
   value: /etc/security/identities-batch
 - name: SERVER_LIBS
   value: {{ .libraries }}
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
 {{- if .env -}}
 {{ .env | toYaml | nindent 0 }}
 {{- end -}}
