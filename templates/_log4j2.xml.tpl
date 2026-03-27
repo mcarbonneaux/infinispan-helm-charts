@@ -20,6 +20,26 @@
       </JsonLayout>
     </Console>
 
+    <!-- ECS (Elastic Common Schema) output on the console -->
+    <!-- Note: This uses JsonLayout (log4j-core) to approximate ECS format.
+         For full ECS support, add log4j-layout-template-json.jar to libraries. -->
+    <Console name="ECS-STDOUT">
+      <JsonLayout compact="true" eventEol="true" stacktraceAsString="true" properties="true" includeStacktrace="true">
+        <KeyValuePair key="@timestamp"         value="$${date:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{UTC}" />
+        <KeyValuePair key="ecs.version"        value="1.2.0" />
+        <KeyValuePair key="log.level"          value="$${level}" />
+        <KeyValuePair key="message"            value="$${message}" />
+        <KeyValuePair key="process.thread.name" value="$${thread}" />
+        <KeyValuePair key="log.logger"         value="$${logger}" />
+        <KeyValuePair key="service.name"       value="infinispan" />
+        <KeyValuePair key="service.type"       value="cache" />
+        <KeyValuePair key="host.name"          value="$${env:POD_NAME:-unknown}" />
+        <KeyValuePair key="labels.namespace"   value="$${env:POD_NAMESPACE:-unknown}" />
+        <KeyValuePair key="labels.pod"         value="$${env:POD_NAME:-unknown}" />
+        <KeyValuePair key="labels.cluster"     value="$${sys:infinispan.cluster.name:-cluster}" />
+      </JsonLayout>
+    </Console>
+
     <!-- Rolling file -->
     <RollingFile name="FILE" createOnDemand="true"
                  fileName="${path}/server.log"
@@ -81,8 +101,14 @@
   <Loggers>
     <Root level="INFO">
       {{- if .Values.deploy.logging.console.json }}
+      {{- /* Backward compatibility: json: true overrides format */ -}}
+      <AppenderRef ref="JSON-STDOUT"/>
+      {{- else if eq .Values.deploy.logging.console.format "ecs" }}
+      <AppenderRef ref="ECS-STDOUT"/>
+      {{- else if eq .Values.deploy.logging.console.format "json" }}
       <AppenderRef ref="JSON-STDOUT"/>
       {{- else }}
+      {{- /* Default: colored format */ -}}
       <AppenderRef ref="STDOUT"/>
       {{- end }}
 
